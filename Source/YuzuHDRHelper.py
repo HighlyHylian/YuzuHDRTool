@@ -89,9 +89,9 @@ class MyMainWindow(QMainWindow):
             else:
                 print(f"Failed to download {file_name}. Status code: {response.status_code}")
         except Exception as e:
-            print(f"An error occurred: {str(e)}")
+            self.show_error_message(f"An error occurred: {str(e)}")
         except:
-            print("An unknown error occurred")
+            self.show_error_message("An unknown error occurred")
 
     def display_message_and_continue(self, message):
         msg_box = QMessageBox()
@@ -220,7 +220,7 @@ class MyMainWindow(QMainWindow):
             except Exception as e:
                 self.show_error_message(f"Error:  {str(e)}")
             except:
-                self.show_error_message("CRITICAL ERROR")
+                self.show_error_message("An unknown error occurred")
                 
             else:
                 self.show_error_message("Please select the sdmc folder first")
@@ -250,7 +250,7 @@ class MyMainWindow(QMainWindow):
             except Exception as e:
                 self.show_error_message(f"Error: {str(e)}")
             except:
-                self.show_error_message("CRITICAL ERROR")
+                self.show_error_message("An unknown error occurred")
 
     def backup_mods_folder(self, source_folder):
         if source_folder and source_folder.endswith("/yuzu/sdmc"):
