@@ -60,7 +60,7 @@ class MyMainWindow(QMainWindow):
 
     # Define empty functions for the buttons (add functionality later)
     def empty_function(self):
-        pass
+        self.show_error_message("Coming Soon(tm)")
     
     def show_error_message(self, message):
         error_box = QMessageBox()
