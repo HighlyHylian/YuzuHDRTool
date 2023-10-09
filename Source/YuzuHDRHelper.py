@@ -48,8 +48,8 @@ class MyMainWindow(QMainWindow):
         # Connect buttons to empty functions (no functionality yet)
         self.ui.NightlyButton.clicked.connect(self.NightlyDownload)
         self.ui.BetaButton.clicked.connect(self.BetaDownload)
-        self.ui.WifiFixButton.clicked.connect(self.empty_function)
-        self.ui.UninstallWifiButton.clicked.connect(self.empty_function)
+        self.ui.WifiFixButton.clicked.connect(self.InstallOnlineFix)
+        self.ui.UninstallWifiButton.clicked.connect(self.UninstallOnlineFix)
         self.ui.FolderButton.clicked.connect(self.set_folder)
         self.ui.NightlyPatch.clicked.connect(self.NightlyPatch)
         self.ui.BetaPatch.clicked.connect(self.BetaPatch)
@@ -210,7 +210,7 @@ class MyMainWindow(QMainWindow):
             self.show_error_message("Please select the yuzu/sdmc folder first")
             return
         
-        # Check if beta is downloaded
+        # Check if nightly is downloaded
         if not os.path.exists(os.path.join(os.getcwd(), "nightly", "ryujinx-package.zip")):
             self.show_error_message("Please download the nightly first")
             return
@@ -230,7 +230,7 @@ class MyMainWindow(QMainWindow):
                         delete_folders(folders)
 
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
-                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs"))                        
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))                        
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
 
                         folders = [
@@ -287,6 +287,51 @@ class MyMainWindow(QMainWindow):
                 self.show_error_message(f"Error:  {str(e)}")
             except:
                 self.show_error_message("An unknown error occurred")
+
+    def InstallOnlineFix(self):
+        if not self.isValidPath():
+            self.show_error_message("Please select your yuzu/sdmc/ folder first")
+            return
+        
+        if not os.path.exists(os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")):
+            self.show_error_message("Please install hdr first")
+            return # HERE
+
+        try:
+            folders = [
+                os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")
+            ]
+            delete_folders(folders)
+            copy_folder(os.path.join(os.getcwd(), "fixed_exefs"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+        except Exception as e:
+            self.show_error_message(f"Error:  {str(e)}")
+        except:
+            self.show_error_message("An unknown error occurred")
+
+    def UninstallOnlineFix(self):
+        if not self.isValidPath():
+            self.show_error_message("Please select your yuzu/sdmc/ folder first")
+            return
+        
+        if not os.path.exists(os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")):
+            self.show_error_message("Please install hdr first")
+            return # HERE
+        
+        if not os.path.exists(os.path.join(os.getcwd(), "normal_exefs")):
+            self.show_error_message("Error: Normal exefs not stored. Run the nightly or beta patcher first.")
+            return # HERE
+
+        try:
+            folders = [
+                os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")
+            ]
+            delete_folders(folders)
+            copy_folder(os.path.join(os.getcwd(), "normal_exefs"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+        except Exception as e:
+            self.show_error_message(f"Error:  {str(e)}")
+        except:
+            self.show_error_message("An unknown error occurred")
+        
 
 
     def backup_folder(self, source_path):
