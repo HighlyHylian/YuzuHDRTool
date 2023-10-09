@@ -6,7 +6,7 @@ Source/backup*
 nightly/
 .vscode/settings.json
 YuzuTool_ver0-1.zip
-__pycache__
+Source/__pycache__
 build/
 YuzuHDRTool*
 dist
