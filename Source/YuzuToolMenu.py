@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\BigYuzuTool.ui'
+# Form implementation generated from reading ui file '.\Source\BigYuzuTool.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(434, 486)
+        MainWindow.resize(434, 568)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.NightlyButton = QtWidgets.QPushButton(self.centralwidget)
@@ -24,10 +24,10 @@ class Ui_MainWindow(object):
         self.BetaButton.setGeometry(QtCore.QRect(20, 170, 391, 41))
         self.BetaButton.setObjectName("BetaButton")
         self.WifiFixButton = QtWidgets.QPushButton(self.centralwidget)
-        self.WifiFixButton.setGeometry(QtCore.QRect(20, 280, 391, 41))
+        self.WifiFixButton.setGeometry(QtCore.QRect(20, 300, 391, 41))
         self.WifiFixButton.setObjectName("WifiFixButton")
         self.UninstallWifiButton = QtWidgets.QPushButton(self.centralwidget)
-        self.UninstallWifiButton.setGeometry(QtCore.QRect(20, 330, 391, 41))
+        self.UninstallWifiButton.setGeometry(QtCore.QRect(20, 350, 391, 41))
         self.UninstallWifiButton.setObjectName("UninstallWifiButton")
         self.FolderButton = QtWidgets.QPushButton(self.centralwidget)
         self.FolderButton.setGeometry(QtCore.QRect(20, 30, 381, 51))
@@ -38,18 +38,18 @@ class Ui_MainWindow(object):
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName("line")
         self.line_2 = QtWidgets.QFrame(self.centralwidget)
-        self.line_2.setGeometry(QtCore.QRect(0, 260, 441, 20))
+        self.line_2.setGeometry(QtCore.QRect(0, 270, 441, 20))
         self.line_2.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_2.setObjectName("line_2")
         self.BetaPatch = QtWidgets.QPushButton(self.centralwidget)
-        self.BetaPatch.setGeometry(QtCore.QRect(20, 460, 391, 41))
+        self.BetaPatch.setGeometry(QtCore.QRect(20, 480, 391, 41))
         self.BetaPatch.setObjectName("BetaPatch")
         self.NightlyPatch = QtWidgets.QPushButton(self.centralwidget)
-        self.NightlyPatch.setGeometry(QtCore.QRect(20, 410, 391, 41))
+        self.NightlyPatch.setGeometry(QtCore.QRect(20, 430, 391, 41))
         self.NightlyPatch.setObjectName("NightlyPatch")
         self.line_3 = QtWidgets.QFrame(self.centralwidget)
-        self.line_3.setGeometry(QtCore.QRect(0, 380, 441, 20))
+        self.line_3.setGeometry(QtCore.QRect(0, 400, 441, 20))
         self.line_3.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_3.setObjectName("line_3")
@@ -71,7 +71,7 @@ class Ui_MainWindow(object):
         self.BetaButton.setText(_translate("MainWindow", "Download Latest Beta"))
         self.WifiFixButton.setText(_translate("MainWindow", "Install Wifi Fix"))
         self.UninstallWifiButton.setText(_translate("MainWindow", "Uninstall Wifi Fix"))
-        self.FolderButton.setText(_translate("MainWindow", "Select Your Yuzu Folder"))
+        self.FolderButton.setText(_translate("MainWindow", "Select Your yuzu/sdmc/ Folder"))
         self.BetaPatch.setText(_translate("MainWindow", "Patch In Beta"))
         self.NightlyPatch.setText(_translate("MainWindow", "Patch In Nightly"))
         self.Legacy.setText(_translate("MainWindow", "Download Legacy Discovery"))

@@ -1,3 +1,7 @@
 
 beta/ryujinx-package.zip
 dist/nightly/ryujinx-package.zip
+legacy_discovery
+Source/backup*
+nightly/ryujinx-package.zip
+.vscode/settings.json

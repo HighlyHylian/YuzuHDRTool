@@ -7,9 +7,7 @@ import shutil
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from YuzuToolMenu import Ui_MainWindow  # Import the generated UI module
 
-
-
-    
+ 
 def copy_folder(source_folder, destination_folder):
     try:
         # Use shutil.copytree to copy the entire folder and its contents
@@ -62,6 +60,11 @@ class MyMainWindow(QMainWindow):
     def empty_function(self):
         self.show_error_message("Coming Soon(tm)")
     
+    def isValidPath(self):
+        if self.selected_directory and self.selected_directory.endswith("/yuzu/sdmc"):
+            return True
+        return False
+
     def show_error_message(self, message):
         error_box = QMessageBox()
         error_box.setIcon(QMessageBox.Critical)
@@ -174,9 +177,11 @@ class MyMainWindow(QMainWindow):
             print("An unknown error occurred")
 
     def NightlyDownload(self):
+
+        # github api call
         nightly_url = f'https://api.github.com/repos/HDR-Development/HDR-Nightlies/releases/latest'
         file_name = 'ryujinx-package.zip'
-        download_dir = 'nightly'  # Change this to the desired download directory
+        download_dir = 'nightly'
 
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
@@ -186,9 +191,11 @@ class MyMainWindow(QMainWindow):
         self.download_file(nightly_url, file_name, download_dir)
 
     def BetaDownload(self):
+            
+        # gihub api call
         beta_url = f'https://api.github.com/repos/HDR-Development/HDR-Releases/releases/latest'
         file_name = 'ryujinx-package.zip'
-        download_dir = 'beta'  # Change this to the desired download directory
+        download_dir = 'beta' 
 
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
@@ -198,7 +205,21 @@ class MyMainWindow(QMainWindow):
         self.download_file(beta_url, file_name, download_dir)
 
     def NightlyPatch(self):
+
+        # Check if the current path is valid
+        if not self.isValidPath():
+            self.show_error_message("Please select the yuzu/sdmc folder first")
+            return
+        
+        # Check if beta is downloaded
+        if not os.path.exists(os.path.join(os.getcwd(), "nightly", "ryujinx-package.zip")):
+            self.show_error_message("Please download the nightly first")
+            return
+
+        # Is it ok to delete everything?
         if self.ask_question("This process will delete everything in your atmosphere and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
+            
+            # Patching process
             try:
                 if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
                     if extract_zip(os.path.join(os.getcwd(), "nightly/ryujinx-package.zip"), self.selected_directory):
@@ -226,7 +247,21 @@ class MyMainWindow(QMainWindow):
                 self.show_error_message("Please select the sdmc folder first")
 
     def BetaPatch(self):
+
+        # Check if the current path is valid
+        if not self.isValidPath():
+            self.show_error_message("Please select the yuzu/sdmc folder first")
+            return
+        
+        # Check if beta is downloaded
+        if not os.path.exists(os.path.join(os.getcwd(), "beta", "ryujinx-package.zip")):
+            self.show_error_message("Please download the beta first")
+            return
+
+        # Is it ok to delete everything?
         if self.ask_question("This process will delete everything in your atmosphere and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
+            
+            # Patching process
             try:
                 if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
                     if(extract_zip(os.path.join(os.getcwd(), "beta/ryujinx-package.zip"), self.selected_directory)):
@@ -252,39 +287,39 @@ class MyMainWindow(QMainWindow):
             except:
                 self.show_error_message("An unknown error occurred")
 
-    def backup_mods_folder(self, source_folder):
-        if source_folder and source_folder.endswith("/yuzu/sdmc"):
-            # Define the excluded subfolders
-            excluded_subfolders = [
-                "hdr",
-                "hdr-assets",
-                "hdr-stages",
-            ]
+    # def backup_mods_folder(self, source_folder):
+    #     if source_folder and source_folder.endswith("/yuzu/sdmc"):
+    #         # Define the excluded subfolders
+    #         excluded_subfolders = [
+    #             "hdr",
+    #             "hdr-assets",
+    #             "hdr-stages",
+    #         ]
 
-            # Create a backup folder with the current date and time
-            current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            backup_folder_name = f"mods-backup-{current_datetime}"
-            script_directory = os.path.dirname(os.path.abspath(__file__))
-            backup_folder = os.path.join(script_directory, backup_folder_name)
+    #         # Create a backup folder with the current date and time
+    #         current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    #         backup_folder_name = f"mods-backup-{current_datetime}"
+    #         script_directory = os.path.dirname(os.path.abspath(__file__))
+    #         backup_folder = os.path.join(script_directory, backup_folder_name)
 
-            # Create the backup folder
-            os.makedirs(backup_folder)
+    #         # Create the backup folder
+    #         os.makedirs(backup_folder)
 
-            # Source and destination paths for the 'mods' folder
-            mods_source = os.path.join(source_folder, "ultimate/mods")
-            mods_destination = os.path.join(backup_folder, "ultimate/mods")
+    #         # Source and destination paths for the 'mods' folder
+    #         mods_source = os.path.join(source_folder, "ultimate/mods")
+    #         mods_destination = os.path.join(backup_folder, "ultimate/mods")
 
-            try:
-                # Copy the 'mods' folder and its contents, excluding specified subfolders
-                shutil.copytree(mods_source, mods_destination, ignore=shutil.ignore_patterns(*excluded_subfolders))
-                print("Backup of 'mods' folder completed.")
-                return True
-            except Exception as e:
-                print(f"Backup of 'mods' folder failed: {str(e)}")
-                return False
-        else:
-            print("Invalid source folder.")
-            return False
+    #         try:
+    #             # Copy the 'mods' folder and its contents, excluding specified subfolders
+    #             shutil.copytree(mods_source, mods_destination, ignore=shutil.ignore_patterns(*excluded_subfolders))
+    #             print("Backup of 'mods' folder completed.")
+    #             return True
+    #         except Exception as e:
+    #             print(f"Backup of 'mods' folder failed: {str(e)}")
+    #             return False
+    #     else:
+    #         print("Invalid source folder.")
+    #         return False
 
     def backup_folder(self, source_path):
         if source_path:
