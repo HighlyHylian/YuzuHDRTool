@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>434</width>
-    <height>486</height>
+    <height>520</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>280</y>
+      <y>300</y>
       <width>391</width>
       <height>41</height>
      </rect>
@@ -57,7 +57,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>330</y>
+      <y>350</y>
       <width>391</width>
       <height>41</height>
      </rect>
@@ -76,7 +76,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Select Your Yuzu Folder</string>
+     <string>Select Your yuzu/sdmc/ Folder</string>
     </property>
    </widget>
    <widget class="Line" name="line">
@@ -96,7 +96,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>260</y>
+      <y>270</y>
       <width>441</width>
       <height>20</height>
      </rect>
@@ -109,7 +109,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>460</y>
+      <y>480</y>
       <width>391</width>
       <height>41</height>
      </rect>
@@ -122,7 +122,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>410</y>
+      <y>430</y>
       <width>391</width>
       <height>41</height>
      </rect>
@@ -135,7 +135,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>380</y>
+      <y>400</y>
       <width>441</width>
       <height>20</height>
      </rect>
