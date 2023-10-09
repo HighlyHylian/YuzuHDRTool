@@ -119,6 +119,12 @@ class MyMainWindow(QMainWindow):
             self.show_error_message("Success")
         else:
             self.show_error_message("Please select the sdmc folder first")
+    
+    def BetaPatch(self):
+        if(self.backup_mods_folder(self.selected_directory)):
+            self.show_error_message("Success")
+        else:
+            self.show_error_message("Please select the sdmc folder first")
 
 
 
