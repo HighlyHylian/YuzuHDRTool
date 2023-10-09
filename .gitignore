@@ -3,6 +3,8 @@ beta/ryujinx-package.zip
 dist/nightly/ryujinx-package.zip
 legacy_discovery
 Source/backup*
-nightly/ryujinx-package.zip
+nightly
 .vscode/settings.json
 YuzuTool_ver0-1.zip
+__pycache__
+build
