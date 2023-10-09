@@ -1,4 +1,5 @@
 import sys
+import zipfile
 import requests
 import os
 import datetime
@@ -6,6 +7,38 @@ import shutil
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from YuzuToolMenu import Ui_MainWindow  # Import the generated UI module
 
+
+
+    
+def copy_folder(source_folder, destination_folder):
+    try:
+        # Use shutil.copytree to copy the entire folder and its contents
+        shutil.copytree(source_folder, destination_folder)
+        print(f"Successfully copied '{source_folder}' to '{destination_folder}'")
+        return True
+    except Exception as e:
+        print(f"Error copying '{source_folder}' to '{destination_folder}': {str(e)}")
+        return False
+
+def delete_folders(folder_paths):
+    for folder_path in folder_paths:
+        try:
+            shutil.rmtree(folder_path)
+            print(f"Deleted {folder_path}")
+        except Exception as e:
+            print(f"Failed to delete {folder_path}: {str(e)}")
+
+def extract_zip(zip_file_path, target_directory):
+    try:
+        # Extract the contents of the ZIP file to the target directory
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            zip_ref.extractall(target_directory)
+        print(f"Extracted {zip_file_path} to {target_directory}")
+        return True
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return False
+    
 class MyMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -22,7 +55,7 @@ class MyMainWindow(QMainWindow):
         self.ui.FolderButton.clicked.connect(self.set_folder)
         self.ui.NightlyPatch.clicked.connect(self.NightlyPatch)
         self.ui.BetaPatch.clicked.connect(self.empty_function)
-
+        self.ui.Legacy.clicked.connect(self.legacyDL)
         self.selected_directory = None
 
     # Define empty functions for the buttons (add functionality later)
@@ -36,6 +69,44 @@ class MyMainWindow(QMainWindow):
         error_box.setWindowTitle("Error")
         error_box.exec_()
 
+    def legacyDL(self):
+        url = "https://cdn.discordapp.com/attachments/410208534861447170/1139219391611949096/legacy_discovery"
+        file_name = "legacy_discovery"
+        download_dir = os.getcwd()
+        try:
+            # Send a GET request to the URL to fetch the file
+            response = requests.get(url)
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                # Specify the local file path where you want to save the downloaded file
+                local_file_path = os.path.join(download_dir, file_name)
+
+                with open(local_file_path, 'wb') as file:
+                    file.write(response.content)
+                
+                print(f"Downloaded {file_name} to {local_file_path}")
+            else:
+                print(f"Failed to download {file_name}. Status code: {response.status_code}")
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+        except:
+            print("An unknown error occurred")
+
+    def display_message_and_continue(self, message):
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setText(message)
+        msg_box.setWindowTitle("Message")
+        msg_box.setStandardButtons(QMessageBox.Ok)
+
+        # Show the QMessageBox and wait for user interaction
+        result = msg_box.exec_()
+
+        # Check if the "Continue" (Ok) button was clicked
+        if result == QMessageBox.Ok:
+            return
+    
     def ask_question(self, message):
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Question)
@@ -127,9 +198,22 @@ class MyMainWindow(QMainWindow):
         self.download_file(beta_url, file_name, download_dir)
 
     def NightlyPatch(self):
-        if self.ask_question("This process will delete everything in your arcropolis and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
-            if(self.backup_mods_folder(self.selected_directory)):
-                self.show_error_message("Success")
+        if self.ask_question("This process will delete everything in your atmosphere and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
+            if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
+                # extract_zip(os.path.join(os.getcwd(), "nightly/ryujinx-package.zip"), self.selected_directory)
+                # folders = [
+                #     os.path.join(self.selected_directory, "atmosphere"),
+                #     os.path.join(self.selected_directory, "ultimate")
+                # ]
+                # delete_folders(folders)
+                # copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+                # copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
+                # folders = [
+                #     os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
+                #     os.path.join(self.selected_directory, "sdcard")
+                # ]
+                # delete_folders(folders)
+                self.display_message_and_continue("Boot up the game. Then, navigate to AppData\\Roaming\\yuzu\\sdmc\\ultimate\\arcropolis\\config\\<numbers>\\<numbers>\nThen, copy the legacy_discovery file into this path.\nThen, reboot.")
             else:
                 self.show_error_message("Please select the sdmc folder first")
 
@@ -139,10 +223,6 @@ class MyMainWindow(QMainWindow):
         else:
             self.show_error_message("Please select the sdmc folder first")
 
-
-
-    
-    
     def backup_mods_folder(self, source_folder):
         if source_folder and source_folder.endswith("/yuzu/sdmc"):
             # Define the excluded subfolders
@@ -177,7 +257,30 @@ class MyMainWindow(QMainWindow):
             print("Invalid source folder.")
             return False
 
+    def backup_folder(self, source_path):
+        if source_path:
+            try:
+                # Get the current date and time to create the backup folder name
+                current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                backup_folder_name = f"backup-{current_datetime}"
 
+                # Determine the directory where the Python script is located
+                script_directory = os.path.dirname(os.path.abspath(__file__))
+
+                # Create the full path for the backup folder
+                backup_folder = os.path.join(script_directory, backup_folder_name)
+
+                # Copy the contents of the source path to the backup folder
+                shutil.copytree(source_path, backup_folder)
+
+                print(f"Backup completed. Contents of '{source_path}' copied to '{backup_folder}'.")
+                return True
+            except Exception as e:
+                print(f"Backup failed: {str(e)}")
+                return True
+        else:
+            return False
+        
 def main():
     app = QApplication(sys.argv)
     window = MyMainWindow()
