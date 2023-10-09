@@ -243,8 +243,8 @@ class MyMainWindow(QMainWindow):
             except:
                 self.show_error_message("An unknown error occurred")
                 
-            else:
-                self.show_error_message("Please select the sdmc folder first")
+        else:
+            self.show_error_message("Please select the sdmc folder first")
 
     def BetaPatch(self):
 
