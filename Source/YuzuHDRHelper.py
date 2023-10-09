@@ -199,29 +199,58 @@ class MyMainWindow(QMainWindow):
 
     def NightlyPatch(self):
         if self.ask_question("This process will delete everything in your atmosphere and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
-            if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
-                # extract_zip(os.path.join(os.getcwd(), "nightly/ryujinx-package.zip"), self.selected_directory)
-                # folders = [
-                #     os.path.join(self.selected_directory, "atmosphere"),
-                #     os.path.join(self.selected_directory, "ultimate")
-                # ]
-                # delete_folders(folders)
-                # copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
-                # copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
-                # folders = [
-                #     os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
-                #     os.path.join(self.selected_directory, "sdcard")
-                # ]
-                # delete_folders(folders)
-                self.display_message_and_continue("Boot up the game. Then, navigate to AppData\\Roaming\\yuzu\\sdmc\\ultimate\\arcropolis\\config\\<numbers>\\<numbers>\nThen, copy the legacy_discovery file into this path.\nThen, reboot.")
+            try:
+                if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
+                    if extract_zip(os.path.join(os.getcwd(), "nightly/ryujinx-package.zip"), self.selected_directory):
+                        folders = [
+                            os.path.join(self.selected_directory, "atmosphere"),
+                            os.path.join(self.selected_directory, "ultimate")
+                        ]
+                        delete_folders(folders)
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
+                        folders = [
+                            os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
+                            os.path.join(self.selected_directory, "sdcard")
+                        ]
+                        delete_folders(folders)
+                        self.display_message_and_continue("Boot up the game. Then, navigate to AppData\\Roaming\\yuzu\\sdmc\\ultimate\\arcropolis\\config\\<numbers>\\<numbers>\nThen, copy the legacy_discovery file into this path.\nThen, reboot.")
+                    else:
+                        self.show_error_message("The ryujinx-package.zip file is missing. Download it first")
+            except Exception as e:
+                self.show_error_message(f"Error:  {str(e)}")
+            except:
+                self.show_error_message("CRITICAL ERROR")
+                
             else:
                 self.show_error_message("Please select the sdmc folder first")
 
     def BetaPatch(self):
-        if(self.backup_mods_folder(self.selected_directory)):
-            self.show_error_message("Success")
-        else:
-            self.show_error_message("Please select the sdmc folder first")
+        if self.ask_question("This process will delete everything in your atmosphere and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
+            try:
+                if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
+                    if(extract_zip(os.path.join(os.getcwd(), "beta/ryujinx-package.zip"), self.selected_directory)):
+                        folders = [
+                            os.path.join(self.selected_directory, "atmosphere"),
+                            os.path.join(self.selected_directory, "ultimate")
+                        ]
+                        delete_folders(folders)
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
+                        folders = [
+                            os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
+                            os.path.join(self.selected_directory, "sdcard")
+                        ]
+                        delete_folders(folders)
+                        self.display_message_and_continue("Boot up the game. Then, navigate to AppData\\Roaming\\yuzu\\sdmc\\ultimate\\arcropolis\\config\\<numbers>\\<numbers>\nThen, copy the legacy_discovery file into this path.\nThen, reboot.")
+                    else:
+                        self.show_error_message("The ryujinx-package.zip file is missing. Download it first")
+                else:
+                    self.show_error_message("Please select the sdmc folder first")
+            except Exception as e:
+                self.show_error_message(f"Error: {str(e)}")
+            except:
+                self.show_error_message("CRITICAL ERROR")
 
     def backup_mods_folder(self, source_folder):
         if source_folder and source_folder.endswith("/yuzu/sdmc"):
