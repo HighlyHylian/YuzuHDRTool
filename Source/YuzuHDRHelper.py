@@ -205,7 +205,6 @@ class MyMainWindow(QMainWindow):
         self.download_file(beta_url, file_name, download_dir)
 
     def NightlyPatch(self):
-
         # Check if the current path is valid
         if not self.isValidPath():
             self.show_error_message("Please select the yuzu/sdmc folder first")
@@ -225,11 +224,15 @@ class MyMainWindow(QMainWindow):
                     if extract_zip(os.path.join(os.getcwd(), "nightly/ryujinx-package.zip"), self.selected_directory):
                         folders = [
                             os.path.join(self.selected_directory, "atmosphere"),
-                            os.path.join(self.selected_directory, "ultimate")
+                            os.path.join(self.selected_directory, "ultimate"),
+                            os.path.join(os.getcwd(), "normal_exefs")
                         ]
                         delete_folders(folders)
+
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs"))                        
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
+
                         folders = [
                             os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
                             os.path.join(self.selected_directory, "sdcard")
@@ -242,9 +245,6 @@ class MyMainWindow(QMainWindow):
                 self.show_error_message(f"Error:  {str(e)}")
             except:
                 self.show_error_message("An unknown error occurred")
-                
-        else:
-            self.show_error_message("Please select the sdmc folder first")
 
     def BetaPatch(self):
         # Check if the current path is valid
@@ -266,11 +266,15 @@ class MyMainWindow(QMainWindow):
                     if extract_zip(os.path.join(os.getcwd(), "beta/ryujinx-package.zip"), self.selected_directory):
                         folders = [
                             os.path.join(self.selected_directory, "atmosphere"),
-                            os.path.join(self.selected_directory, "ultimate")
+                            os.path.join(self.selected_directory, "ultimate"),
+                            os.path.join(os.getcwd(), "normal_exefs")
                         ]
                         delete_folders(folders)
+
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))                        
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
+
                         folders = [
                             os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
                             os.path.join(self.selected_directory, "sdcard")
@@ -283,9 +287,6 @@ class MyMainWindow(QMainWindow):
                 self.show_error_message(f"Error:  {str(e)}")
             except:
                 self.show_error_message("An unknown error occurred")
-                
-        else:
-            self.show_error_message("Please select the sdmc folder first")
 
 
     def backup_folder(self, source_path):
