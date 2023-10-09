@@ -1,0 +1,12 @@
+{
+	"new-dir-files": {
+		"fighter/ganon/c05": [
+			"fighter/ganon/model/sword/c05/def_sword_002_col.nutexb",
+			"fighter/ganon/model/sword/c05/def_sword_002_nor.nutexb",
+			"fighter/ganon/model/sword/c05/def_sword_002_prm.nutexb",
+			"fighter/ganon/model/sword/c05/def_sword_003_col.nutexb",
+			"fighter/ganon/model/sword/c05/def_sword_003_nor.nutexb",
+			"fighter/ganon/model/sword/c05/def_sword_003_prm.nutexb"
+		]
+	}
+}

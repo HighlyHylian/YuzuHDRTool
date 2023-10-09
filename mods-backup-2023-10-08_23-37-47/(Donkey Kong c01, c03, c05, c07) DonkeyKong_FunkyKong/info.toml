@@ -1,0 +1,19 @@
+display_name="Funky Kong Pack"
+description="""
+Created by BezBZ
+
+Bodacious.
+
+Replaces every other DK alternate costume with a totally tubular appearance by Funky Kong!
+Comes with an edited model with custom expressions, custom renders, stock icons, and voicelines from MKWii too!
+Also comes with an effects file that changes the hand slap to blue, so you can make your opponents ride the waves!
+(Note : The effects file changes the hand slap effect for every alt, not just the Funky Kong ones.)
+
+c01: Default
+c03: DK64
+c05: Blue and Yellow
+c07: Seasonal Pop
+
+"""
+version="2.0.0"
+category="Fighter"
