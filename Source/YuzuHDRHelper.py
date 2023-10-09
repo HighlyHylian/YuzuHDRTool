@@ -54,7 +54,7 @@ class MyMainWindow(QMainWindow):
         self.ui.UninstallWifiButton.clicked.connect(self.empty_function)
         self.ui.FolderButton.clicked.connect(self.set_folder)
         self.ui.NightlyPatch.clicked.connect(self.NightlyPatch)
-        self.ui.BetaPatch.clicked.connect(self.empty_function)
+        self.ui.BetaPatch.clicked.connect(self.BetaPatch)
         self.ui.Legacy.clicked.connect(self.legacyDL)
         self.selected_directory = None
 
