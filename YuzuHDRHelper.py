@@ -36,6 +36,18 @@ class MyMainWindow(QMainWindow):
         error_box.setWindowTitle("Error")
         error_box.exec_()
 
+    def ask_question(self, message):
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setText(message)
+        msg_box.setWindowTitle("Question")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+
+        result = msg_box.exec_()
+
+        # Return True if the user clicked Yes, otherwise False
+        return result == QMessageBox.Yes
+
     def set_folder(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly  # Optional: Make the dialog read-only
@@ -115,11 +127,12 @@ class MyMainWindow(QMainWindow):
         self.download_file(beta_url, file_name, download_dir)
 
     def NightlyPatch(self):
-        if(self.backup_mods_folder(self.selected_directory)):
-            self.show_error_message("Success")
-        else:
-            self.show_error_message("Please select the sdmc folder first")
-    
+        if self.ask_question("This process will delete everything in your arcropolis and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
+            if(self.backup_mods_folder(self.selected_directory)):
+                self.show_error_message("Success")
+            else:
+                self.show_error_message("Please select the sdmc folder first")
+
     def BetaPatch(self):
         if(self.backup_mods_folder(self.selected_directory)):
             self.show_error_message("Success")
@@ -128,41 +141,40 @@ class MyMainWindow(QMainWindow):
 
 
 
-    def backup_mods_folder(self, sdmc_folder):
-        if sdmc_folder and sdmc_folder.endswith("/yuzu/sdmc"):
-            excluded_folders = ["hdr", "hdr-stages", "hdr-assets"]
-            # Construct the full path to /yuzu/sdmc/ultimate/mods
-            mods_folder = os.path.join(sdmc_folder, "ultimate", "mods")
-
-            # Check if the mods folder exists
-            if not os.path.exists(mods_folder):
-                print(f"The mods folder '{mods_folder}' does not exist.")
-                return
+    
+    
+    def backup_mods_folder(self, source_folder):
+        if source_folder and source_folder.endswith("/yuzu/sdmc"):
+            # Define the excluded subfolders
+            excluded_subfolders = [
+                "hdr",
+                "hdr-assets",
+                "hdr-stages",
+            ]
 
             # Create a backup folder with the current date and time
             current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             backup_folder_name = f"mods-backup-{current_datetime}"
-            backup_folder = os.path.join(os.path.dirname(__file__), backup_folder_name)
+            script_directory = os.path.dirname(os.path.abspath(__file__))
+            backup_folder = os.path.join(script_directory, backup_folder_name)
 
             # Create the backup folder
             os.makedirs(backup_folder)
 
-            # Get a list of all subdirectories in the mods folder
-            subdirectories = [d for d in os.listdir(mods_folder) if os.path.isdir(os.path.join(mods_folder, d))]
+            # Source and destination paths for the 'mods' folder
+            mods_source = os.path.join(source_folder, "ultimate/mods")
+            mods_destination = os.path.join(backup_folder, "ultimate/mods")
 
-            # Iterate through the subdirectories and copy them to the backup folder
-            for subdir in subdirectories:
-                if subdir not in excluded_folders:
-                    src_path = os.path.join(mods_folder, subdir)
-                    dest_path = os.path.join(backup_folder, subdir)
-
-                    try:
-                        shutil.copytree(src_path, dest_path)
-                        print(f"Backup of '{subdir}' completed.")
-                    except Exception as e:
-                        print(f"Backup of '{subdir}' failed: {str(e)}")
-            return True
+            try:
+                # Copy the 'mods' folder and its contents, excluding specified subfolders
+                shutil.copytree(mods_source, mods_destination, ignore=shutil.ignore_patterns(*excluded_subfolders))
+                print("Backup of 'mods' folder completed.")
+                return True
+            except Exception as e:
+                print(f"Backup of 'mods' folder failed: {str(e)}")
+                return False
         else:
+            print("Invalid source folder.")
             return False
 
 
