@@ -1,5 +1,6 @@
 import sys
 import zipfile
+import glob
 import requests
 import os
 import datetime
@@ -54,6 +55,7 @@ class MyMainWindow(QMainWindow):
         self.ui.NightlyPatch.clicked.connect(self.NightlyPatch)
         self.ui.BetaPatch.clicked.connect(self.BetaPatch)
         self.ui.Legacy.clicked.connect(self.legacyDL)
+        self.ui.Legacy_2.clicked.connect(self.installLegacy)
         self.selected_directory = None
 
     # Define empty functions for the buttons (add functionality later)
@@ -172,9 +174,9 @@ class MyMainWindow(QMainWindow):
             else:
                 print("Failed to fetch latest release information")
         except Exception as e:
-            print(f"An error occurred: {str(e)}")
+            self.show_error_message(f"An error occurred: {str(e)}")
         except:
-            print("An unknown error occurred")
+            self.show_error_message("An unknown error occurred")
 
     def NightlyDownload(self):
 
@@ -190,6 +192,8 @@ class MyMainWindow(QMainWindow):
 
         self.download_file(nightly_url, file_name, download_dir)
 
+        self.display_message_and_continue('Finished downloading nightly')
+
     def BetaDownload(self):
             
         # gihub api call
@@ -203,6 +207,8 @@ class MyMainWindow(QMainWindow):
         self.show_error_message("Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
 
         self.download_file(beta_url, file_name, download_dir)
+
+        self.display_message_and_continue('Finished downloading beta')
 
     def NightlyPatch(self):
         # Check if the current path is valid
@@ -238,13 +244,15 @@ class MyMainWindow(QMainWindow):
                             os.path.join(self.selected_directory, "sdcard")
                         ]
                         delete_folders(folders)
-                        self.display_message_and_continue("Boot up the game. Then, navigate to AppData\\Roaming\\yuzu\\sdmc\\ultimate\\arcropolis\\config\\<numbers>\\<numbers>\nThen, copy the legacy_discovery file into this path.\nThen, reboot.")
+                        self.display_message_and_continue("Boot up the game. Wait for the intro scene to start.\nThen close the game and press the \'Install Legacy Discovery\' button.")
                     else:
                         self.show_error_message("The ryujinx-package.zip file is missing. Download it first")
             except Exception as e:
                 self.show_error_message(f"Error:  {str(e)}")
             except:
                 self.show_error_message("An unknown error occurred")
+        
+        self.display_message_and_continue('Finished patching nightly in')
 
     def BetaPatch(self):
         # Check if the current path is valid
@@ -280,13 +288,15 @@ class MyMainWindow(QMainWindow):
                             os.path.join(self.selected_directory, "sdcard")
                         ]
                         delete_folders(folders)
-                        self.display_message_and_continue("Boot up the game. Then, navigate to AppData\\Roaming\\yuzu\\sdmc\\ultimate\\arcropolis\\config\\<numbers>\\<numbers>\nThen, copy the legacy_discovery file into this path.\nThen, reboot.")
+                        self.display_message_and_continue("Boot up the game. Wait for the intro scene to start.\nThen close the game and press the \'Install Legacy Discovery\' button.")
                     else:
                         self.show_error_message("The ryujinx-package.zip file is missing. Download it first")
             except Exception as e:
                 self.show_error_message(f"Error:  {str(e)}")
             except:
                 self.show_error_message("An unknown error occurred")
+        
+        self.display_message_and_continue('Finished patching beta in')
 
     def InstallOnlineFix(self):
         if not self.isValidPath():
@@ -307,6 +317,8 @@ class MyMainWindow(QMainWindow):
             self.show_error_message(f"Error:  {str(e)}")
         except:
             self.show_error_message("An unknown error occurred")
+        
+        self.display_message_and_continue('Finished installing online fix')
 
     def UninstallOnlineFix(self):
         if not self.isValidPath():
@@ -332,6 +344,36 @@ class MyMainWindow(QMainWindow):
         except:
             self.show_error_message("An unknown error occurred")
         
+        self.display_message_and_continue('Finished uninstalling the online fix')
+    
+    def installLegacy(self):
+        if not os.path.exists(os.path.join(os.getcwd(), 'legacy_discovery')):
+            self.show_error_message("Please click the \'Download Legacy Discovery\' button first.")
+            return
+
+        if not self.isValidPath():
+            self.show_error_message("Please select your yuzu/sdmc/ folder first")
+            return
+
+        # Set the source file to legacy discovery's path
+        source_file = os.path.join(os.getcwd(), 'legacy_discovery')
+
+        # Get the regex directory path
+        target_directory_pattern = os.path.join(self.selected_directory, 'ultimate', 'arcropolis', 'config', '*', '*')
+
+        # Get all directories matching the regex path
+        matching_directories = glob.glob(target_directory_pattern)
+
+        # Iterate over the matching directories and copy the file to each of them
+        for directory in matching_directories:
+
+            # Construct the full path for the target directory
+            target_directory = os.path.join(directory, 'legacy_discovery')
+
+            # Copy the source file to the target directory
+            shutil.copy(source_file, target_directory)
+
+        self.display_message_and_continue("Finished installing \'legacy_discovery\'")
 
 
     def backup_folder(self, source_path):
@@ -353,7 +395,7 @@ class MyMainWindow(QMainWindow):
                 print(f"Backup completed. Contents of '{source_path}' copied to '{backup_folder}'.")
                 return True
             except Exception as e:
-                print(f"Backup failed: {str(e)}")
+                self.show_error_message(f"Backup failed: {str(e)}")
                 return True
         else:
             return False
