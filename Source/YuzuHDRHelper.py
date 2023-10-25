@@ -138,6 +138,14 @@ class MyMainWindow(QMainWindow):
             # Set the selected directory to the variable
             self.selected_directory = directory
 
+            # Check if some version of HDR is installed
+            if not os.path.exists(os.path.join(self.selected_directory, 'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt')):
+                self.ui.HDRVersion.setText('Current HDR Version: NOT INSTALLED')
+                print('Version not found')
+            else:
+                file = open(os.path.join(self.selected_directory, 'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt'))
+                self.ui.HDRVersion.setText('Current HDR Version: ' + file.read())
+
     def download_file(self, url, file_name, download_dir):
         try:
             # Send a GET request to the GitHub API to fetch the latest release information
