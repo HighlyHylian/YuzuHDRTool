@@ -5,7 +5,7 @@ import requests
 import os
 import datetime
 import shutil
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QProgressBar, QProgressDialog
 from YuzuToolMenu import Ui_MainWindow  # Import the generated UI module
 
  
@@ -45,6 +45,9 @@ class MyMainWindow(QMainWindow):
         # Set up the user interface from the generated UI file
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        # Create a new progress bar widget
+        self.progress_dialog = None
 
         # Connect buttons to empty functions (no functionality yet)
         self.ui.NightlyButton.clicked.connect(self.NightlyDownload)
@@ -149,12 +152,13 @@ class MyMainWindow(QMainWindow):
     def download_file(self, url, file_name, download_dir):
         try:
             # Send a GET request to the GitHub API to fetch the latest release information
-            response = requests.get(url)
+            response = requests.get(url, stream=True)  # Use stream=True for streaming the file download
 
             # Check if the request was successful
             if response.status_code == 200:
                 release_info = response.json()
                 asset_url = None
+                bytes_downloaded = 0
 
                 # Iterate through the assets to find the file you want to download
                 for asset in release_info['assets']:
@@ -164,7 +168,7 @@ class MyMainWindow(QMainWindow):
 
                 if asset_url:
                     # Download the file
-                    response = requests.get(asset_url)
+                    response = requests.get(asset_url, stream=True)
 
                     # Check if the download was successful
                     if response.status_code == 200:
@@ -172,8 +176,18 @@ class MyMainWindow(QMainWindow):
                         local_file_path = os.path.join(download_dir, file_name)
 
                         with open(local_file_path, 'wb') as file:
-                            file.write(response.content)
-                        
+                            for data in response.iter_content(chunk_size=1024):
+                                file.write(data)
+                                bytes_downloaded += len(data)
+                                # Calculate the download progress
+                                if response.headers.get('content-length'):
+                                    total_size = int(response.headers['content-length'])
+                                    progress = int(bytes_downloaded / total_size * 100)
+                                    self.progress_dialog.setValue(progress)
+                                else:
+                                    # If content-length is not available, use a dynamic approach
+                                    self.progress_dialog.setValue(100 * bytes_downloaded // (1024 * 1024))  # MB progress
+
                         print(f"Downloaded {file_name} to {local_file_path}")
                     else:
                         print(f"Failed to download {file_name}")
@@ -186,6 +200,12 @@ class MyMainWindow(QMainWindow):
         except:
             self.show_error_message("An unknown error occurred")
 
+    def show_progress_popup(self, title, label):
+        self.progress_dialog = QProgressDialog(title, "Cancel", 0, 100, self)
+        self.progress_dialog.setWindowModality(2)
+        self.progress_dialog.setLabelText(label)
+        self.progress_dialog.setValue(0)
+
     def NightlyDownload(self):
 
         # github api call
@@ -197,8 +217,14 @@ class MyMainWindow(QMainWindow):
             os.makedirs(download_dir)
 
         self.show_error_message("Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
+        
+        
+        self.show_progress_popup("Nightly Download", "Downloading...")
 
         self.download_file(nightly_url, file_name, download_dir)
+
+        self.progress_dialog.close()
+
 
         self.display_message_and_continue('Finished downloading nightly')
 
@@ -214,7 +240,13 @@ class MyMainWindow(QMainWindow):
 
         self.show_error_message("Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
 
+
+        self.show_progress_popup("Beta Download", "Downloading...")
+
         self.download_file(beta_url, file_name, download_dir)
+
+        self.progress_dialog.close()
+        
 
         self.display_message_and_continue('Finished downloading beta')
 
@@ -407,6 +439,7 @@ class MyMainWindow(QMainWindow):
                 return True
         else:
             return False
+ 
         
 def main():
     app = QApplication(sys.argv)
