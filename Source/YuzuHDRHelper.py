@@ -7,17 +7,22 @@ import datetime
 import shutil
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QProgressBar, QProgressDialog
 from YuzuToolMenu import Ui_MainWindow  # Import the generated UI module
+import configparser
+from configparser import ConfigParser
 
- 
+
 def copy_folder(source_folder, destination_folder):
     try:
         # Use shutil.copytree to copy the entire folder and its contents
         shutil.copytree(source_folder, destination_folder)
-        print(f"Successfully copied '{source_folder}' to '{destination_folder}'")
+        print(
+            f"Successfully copied '{source_folder}' to '{destination_folder}'")
         return True
     except Exception as e:
-        print(f"Error copying '{source_folder}' to '{destination_folder}': {str(e)}")
+        print(
+            f"Error copying '{source_folder}' to '{destination_folder}': {str(e)}")
         return False
+
 
 def delete_folders(folder_paths):
     for folder_path in folder_paths:
@@ -26,6 +31,7 @@ def delete_folders(folder_paths):
             print(f"Deleted {folder_path}")
         except Exception as e:
             print(f"Failed to delete {folder_path}: {str(e)}")
+
 
 def extract_zip(zip_file_path, target_directory):
     try:
@@ -37,7 +43,8 @@ def extract_zip(zip_file_path, target_directory):
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return False
-    
+
+
 class MyMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -61,10 +68,33 @@ class MyMainWindow(QMainWindow):
         self.ui.Legacy_2.clicked.connect(self.installLegacy)
         self.selected_directory = None
 
+        config = ConfigParser()
+        config['Paths'] = {
+            'directory_path': ''
+        }
+
+        config.read('config.ini')
+
+        # Retrieve the directory path
+        directory_path = config.get('Paths', 'directory_path')
+        directory_path = directory_path.replace('\'', '')
+
+        self.selected_directory = directory_path
+
+        # Use the directory path in your program
+        print(f"Directory path read from file: {directory_path}")
+
+        if os.path.exists(os.path.join(self.selected_directory, 'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt')):
+            file = open(os.path.join(self.selected_directory,
+                        'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt'))
+            self.ui.HDRVersion.setText('Current HDR Version: ' + file.read())
+        else:
+            print('Directory Not Set')
+
     # Define empty functions for the buttons (add functionality later)
     def empty_function(self):
         self.show_error_message("Coming Soon(tm)")
-    
+
     def isValidPath(self):
         if self.selected_directory and self.selected_directory.endswith("/yuzu/sdmc"):
             return True
@@ -92,10 +122,13 @@ class MyMainWindow(QMainWindow):
 
                 with open(local_file_path, 'wb') as file:
                     file.write(response.content)
-                
+
                 print(f"Downloaded {file_name} to {local_file_path}")
+                self.display_message_and_continue(
+                    'Downloaded legacy_discovery')
             else:
-                print(f"Failed to download {file_name}. Status code: {response.status_code}")
+                print(
+                    f"Failed to download {file_name}. Status code: {response.status_code}")
         except Exception as e:
             self.show_error_message(f"An error occurred: {str(e)}")
         except:
@@ -114,7 +147,7 @@ class MyMainWindow(QMainWindow):
         # Check if the "Continue" (Ok) button was clicked
         if result == QMessageBox.Ok:
             return
-    
+
     def ask_question(self, message):
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Question)
@@ -130,29 +163,36 @@ class MyMainWindow(QMainWindow):
     def set_folder(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly  # Optional: Make the dialog read-only
-        directory = QFileDialog.getExistingDirectory(self, "Select Directory", options=options)
+        directory = QFileDialog.getExistingDirectory(
+            self, "Select Directory", options=options)
 
         if directory:
             # Check if the selected directory ends with "\yuzu\sdmc\ultimate\mods"
             if not directory.endswith("/yuzu/sdmc"):
-                self.show_error_message("Selected directory must end with '/yuzu/sdmc'")
+                self.show_error_message(
+                    "Selected directory must end with '/yuzu/sdmc'")
                 return
 
             # Set the selected directory to the variable
             self.selected_directory = directory
+            print("Directory: ", self.selected_directory)
 
             # Check if some version of HDR is installed
             if not os.path.exists(os.path.join(self.selected_directory, 'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt')):
-                self.ui.HDRVersion.setText('Current HDR Version: NOT INSTALLED')
+                self.ui.HDRVersion.setText(
+                    'Current HDR Version: NOT INSTALLED')
                 print('Version not found')
             else:
-                file = open(os.path.join(self.selected_directory, 'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt'))
-                self.ui.HDRVersion.setText('Current HDR Version: ' + file.read())
+                file = open(os.path.join(self.selected_directory,
+                            'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt'))
+                self.ui.HDRVersion.setText(
+                    'Current HDR Version: ' + file.read())
 
     def download_file(self, url, file_name, download_dir):
         try:
             # Send a GET request to the GitHub API to fetch the latest release information
-            response = requests.get(url, stream=True)  # Use stream=True for streaming the file download
+            # Use stream=True for streaming the file download
+            response = requests.get(url, stream=True)
 
             # Check if the request was successful
             if response.status_code == 200:
@@ -181,18 +221,22 @@ class MyMainWindow(QMainWindow):
                                 bytes_downloaded += len(data)
                                 # Calculate the download progress
                                 if response.headers.get('content-length'):
-                                    total_size = int(response.headers['content-length'])
-                                    progress = int(bytes_downloaded / total_size * 100)
+                                    total_size = int(
+                                        response.headers['content-length'])
+                                    progress = int(
+                                        bytes_downloaded / total_size * 100)
                                     self.progress_dialog.setValue(progress)
                                 else:
                                     # If content-length is not available, use a dynamic approach
-                                    self.progress_dialog.setValue(100 * bytes_downloaded // (1024 * 1024))  # MB progress
+                                    self.progress_dialog.setValue(
+                                        100 * bytes_downloaded // (1024 * 1024))  # MB progress
 
                         print(f"Downloaded {file_name} to {local_file_path}")
                     else:
                         print(f"Failed to download {file_name}")
                 else:
-                    print(f"File {file_name} not found in the latest release assets")
+                    print(
+                        f"File {file_name} not found in the latest release assets")
             else:
                 print("Failed to fetch latest release information")
         except Exception as e:
@@ -200,10 +244,27 @@ class MyMainWindow(QMainWindow):
         except:
             self.show_error_message("An unknown error occurred")
 
+    def handle_cancel(self):
+        # Handle the cancellation action here
+        # You can add code to stop the download or perform cleanup
+        if self.progress_dialog.wasCanceled():
+            self.show_error_message("Download canceled")
+            # Implement code here to stop the download if it's in progress
+            # You can also delete any temporary files
+            self.progress_dialog.reset()  # Reset the progress dialog
+            # Add code to delete temporary files or any cleanup actions
+
     def show_progress_popup(self, title, label):
-        self.progress_dialog = QProgressDialog(title, "Cancel", 0, 100, self)
+        self.progress_dialog = QProgressDialog(title, "", 0, 100, self)
         self.progress_dialog.setWindowModality(2)
         self.progress_dialog.setLabelText(label)
+
+        # Set the cancel button text to an empty string
+        self.progress_dialog.setCancelButtonText("Cancel")
+
+        # Increase the size of the progress bar by setting the dialog size
+        self.progress_dialog.resize(800, 200)  # Adjust the size as needed
+
         self.progress_dialog.setValue(0)
 
     def NightlyDownload(self):
@@ -216,37 +277,34 @@ class MyMainWindow(QMainWindow):
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
 
-        self.show_error_message("Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
-        
-        
+        self.show_error_message(
+            "Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
+
         self.show_progress_popup("Nightly Download", "Downloading...")
 
         self.download_file(nightly_url, file_name, download_dir)
 
         self.progress_dialog.close()
 
-
         self.display_message_and_continue('Finished downloading nightly')
 
     def BetaDownload(self):
-            
+
         # gihub api call
         beta_url = f'https://api.github.com/repos/HDR-Development/HDR-Releases/releases/latest'
         file_name = 'ryujinx-package.zip'
-        download_dir = 'beta' 
+        download_dir = 'beta'
 
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
 
-        self.show_error_message("Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
-
+        self.show_error_message(
+            "Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
 
         self.show_progress_popup("Beta Download", "Downloading...")
-
         self.download_file(beta_url, file_name, download_dir)
 
         self.progress_dialog.close()
-        
 
         self.display_message_and_continue('Finished downloading beta')
 
@@ -255,7 +313,7 @@ class MyMainWindow(QMainWindow):
         if not self.isValidPath():
             self.show_error_message("Please select the yuzu/sdmc folder first")
             return
-        
+
         # Check if nightly is downloaded
         if not os.path.exists(os.path.join(os.getcwd(), "nightly", "ryujinx-package.zip")):
             self.show_error_message("Please download the nightly first")
@@ -263,43 +321,50 @@ class MyMainWindow(QMainWindow):
 
         # Is it ok to delete everything?
         if self.ask_question("This process will delete everything in your atmosphere and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
-            
+
             # Patching process
             try:
-                if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
+                if (self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
                     if extract_zip(os.path.join(os.getcwd(), "nightly/ryujinx-package.zip"), self.selected_directory):
                         folders = [
-                            os.path.join(self.selected_directory, "atmosphere"),
+                            os.path.join(
+                                self.selected_directory, "atmosphere"),
                             os.path.join(self.selected_directory, "ultimate"),
                             os.path.join(os.getcwd(), "normal_exefs")
                         ]
                         delete_folders(folders)
 
-                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
-                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))                        
-                        copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(
+                            self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents",
+                                    "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(
+                            self.selected_directory, "ultimate"))
 
                         folders = [
-                            os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
+                            os.path.join(
+                                self.selected_directory, "atmosphere", "contents", "0100000000000013"),
                             os.path.join(self.selected_directory, "sdcard")
                         ]
                         delete_folders(folders)
-                        self.display_message_and_continue("Boot up the game. Wait for the intro scene to start.\nThen close the game and press the \'Install Legacy Discovery\' button.")
+                        self.display_message_and_continue(
+                            "Boot up the game. Wait for the intro scene to start.\nThen close the game and press the \'Install Legacy Discovery\' button.")
+                        self.display_message_and_continue(
+                            'Finished patching nightly in')
                     else:
-                        self.show_error_message("The ryujinx-package.zip file is missing. Download it first")
+                        self.show_error_message(
+                            "The ryujinx-package.zip file is missing. Download it first")
             except Exception as e:
                 self.show_error_message(f"Error:  {str(e)}")
             except:
                 self.show_error_message("An unknown error occurred")
-        
-        self.display_message_and_continue('Finished patching nightly in')
 
     def BetaPatch(self):
         # Check if the current path is valid
         if not self.isValidPath():
             self.show_error_message("Please select the yuzu/sdmc folder first")
             return
-        
+
         # Check if beta is downloaded
         if not os.path.exists(os.path.join(os.getcwd(), "beta", "ryujinx-package.zip")):
             self.show_error_message("Please download the beta first")
@@ -307,99 +372,117 @@ class MyMainWindow(QMainWindow):
 
         # Is it ok to delete everything?
         if self.ask_question("This process will delete everything in your atmosphere and ultimate folders.\nA backup of your mod folder will be made\nProceed?"):
-            
+
             # Patching process
             try:
-                if(self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
+                if (self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
                     if extract_zip(os.path.join(os.getcwd(), "beta/ryujinx-package.zip"), self.selected_directory):
                         folders = [
-                            os.path.join(self.selected_directory, "atmosphere"),
+                            os.path.join(
+                                self.selected_directory, "atmosphere"),
                             os.path.join(self.selected_directory, "ultimate"),
                             os.path.join(os.getcwd(), "normal_exefs")
                         ]
                         delete_folders(folders)
 
-                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
-                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))                        
-                        copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(self.selected_directory, "ultimate"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(
+                            self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents",
+                                    "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))
+                        copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(
+                            self.selected_directory, "ultimate"))
 
                         folders = [
-                            os.path.join(self.selected_directory, "atmosphere", "contents", "0100000000000013"),
+                            os.path.join(
+                                self.selected_directory, "atmosphere", "contents", "0100000000000013"),
                             os.path.join(self.selected_directory, "sdcard")
                         ]
                         delete_folders(folders)
-                        self.display_message_and_continue("Boot up the game. Wait for the intro scene to start.\nThen close the game and press the \'Install Legacy Discovery\' button.")
+                        self.display_message_and_continue(
+                            "Boot up the game. Wait for the intro scene to start.\nThen close the game and press the \'Install Legacy Discovery\' button.")
+                        self.display_message_and_continue(
+                            'Finished patching beta in')
                     else:
-                        self.show_error_message("The ryujinx-package.zip file is missing. Download it first")
+                        self.show_error_message(
+                            "The ryujinx-package.zip file is missing. Download it first")
             except Exception as e:
                 self.show_error_message(f"Error:  {str(e)}")
             except:
                 self.show_error_message("An unknown error occurred")
-        
-        self.display_message_and_continue('Finished patching beta in')
 
     def InstallOnlineFix(self):
         if not self.isValidPath():
-            self.show_error_message("Please select your yuzu/sdmc/ folder first")
+            self.show_error_message(
+                "Please select your yuzu/sdmc/ folder first")
             return
-        
+
         if not os.path.exists(os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")):
             self.show_error_message("Please install hdr first")
-            return # HERE
+            return  # HERE
 
         try:
             folders = [
-                os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")
+                os.path.join(self.selected_directory, "atmosphere",
+                             "contents", "01006A800016E000")
             ]
             delete_folders(folders)
-            copy_folder(os.path.join(os.getcwd(), "fixed_exefs"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+            copy_folder(os.path.join(os.getcwd(), "fixed_exefs"), os.path.join(
+                self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
         except Exception as e:
             self.show_error_message(f"Error:  {str(e)}")
         except:
             self.show_error_message("An unknown error occurred")
-        
+
         self.display_message_and_continue('Finished installing online fix')
 
     def UninstallOnlineFix(self):
         if not self.isValidPath():
-            self.show_error_message("Please select your yuzu/sdmc/ folder first")
+            self.show_error_message(
+                "Please select your yuzu/sdmc/ folder first")
             return
-        
+
         if not os.path.exists(os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")):
             self.show_error_message("Please install hdr first")
-            return # HERE
-        
+            return  # HERE
+
         if not os.path.exists(os.path.join(os.getcwd(), "normal_exefs")):
-            self.show_error_message("Error: Normal exefs not stored. Run the nightly or beta patcher first.")
-            return # HERE
+            self.show_error_message(
+                "Error: Normal exefs not stored. Run the nightly or beta patcher first.")
+            return  # HERE
 
         try:
             folders = [
-                os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000")
+                os.path.join(self.selected_directory, "atmosphere",
+                             "contents", "01006A800016E000")
             ]
             delete_folders(folders)
-            copy_folder(os.path.join(os.getcwd(), "normal_exefs"), os.path.join(self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
+            copy_folder(os.path.join(os.getcwd(), "normal_exefs"), os.path.join(
+                self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
         except Exception as e:
             self.show_error_message(f"Error:  {str(e)}")
         except:
             self.show_error_message("An unknown error occurred")
-        
-        self.display_message_and_continue('Finished uninstalling the online fix')
-    
+
+        self.display_message_and_continue(
+            'Finished uninstalling the online fix')
+
     def installLegacy(self):
         if not os.path.exists(os.path.join(os.getcwd(), 'legacy_discovery')):
-            self.show_error_message("Please click the \'Download Legacy Discovery\' button first.")
+            self.show_error_message(
+                "Please click the \'Download Legacy Discovery\' button first.")
             return
 
         if not self.isValidPath():
-            self.show_error_message("Please select your yuzu/sdmc/ folder first")
+            self.show_error_message(
+                "Please select your yuzu/sdmc/ folder first")
             return
 
         # Set the source file to legacy discovery's path
         source_file = os.path.join(os.getcwd(), 'legacy_discovery')
 
         # Get the regex directory path
-        target_directory_pattern = os.path.join(self.selected_directory, 'ultimate', 'arcropolis', 'config', '*', '*')
+        target_directory_pattern = os.path.join(
+            self.selected_directory, 'ultimate', 'arcropolis', 'config', '*', '*')
 
         # Get all directories matching the regex path
         matching_directories = glob.glob(target_directory_pattern)
@@ -413,8 +496,8 @@ class MyMainWindow(QMainWindow):
             # Copy the source file to the target directory
             shutil.copy(source_file, target_directory)
 
-        self.display_message_and_continue("Finished installing \'legacy_discovery\'")
-
+        self.display_message_and_continue(
+            "Finished installing \'legacy_discovery\'")
 
     def backup_folder(self, source_path):
         if source_path:
@@ -427,25 +510,28 @@ class MyMainWindow(QMainWindow):
                 script_directory = os.path.dirname(os.path.abspath(__file__))
 
                 # Create the full path for the backup folder
-                backup_folder = os.path.join(script_directory, backup_folder_name)
+                backup_folder = os.path.join(
+                    script_directory, backup_folder_name)
 
                 # Copy the contents of the source path to the backup folder
                 shutil.copytree(source_path, backup_folder)
 
-                print(f"Backup completed. Contents of '{source_path}' copied to '{backup_folder}'.")
+                print(
+                    f"Backup completed. Contents of '{source_path}' copied to '{backup_folder}'.")
                 return True
             except Exception as e:
                 self.show_error_message(f"Backup failed: {str(e)}")
                 return True
         else:
             return False
- 
-        
+
+
 def main():
     app = QApplication(sys.argv)
     window = MyMainWindow()
     window.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
