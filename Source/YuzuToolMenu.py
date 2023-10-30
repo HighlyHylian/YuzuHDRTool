@@ -70,6 +70,14 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.FolderButton, self.NightlyButton)
+        MainWindow.setTabOrder(self.NightlyButton, self.BetaButton)
+        MainWindow.setTabOrder(self.BetaButton, self.Legacy)
+        MainWindow.setTabOrder(self.Legacy, self.Legacy_2)
+        MainWindow.setTabOrder(self.Legacy_2, self.WifiFixButton)
+        MainWindow.setTabOrder(self.WifiFixButton, self.UninstallWifiButton)
+        MainWindow.setTabOrder(self.UninstallWifiButton, self.NightlyPatch)
+        MainWindow.setTabOrder(self.NightlyPatch, self.BetaPatch)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

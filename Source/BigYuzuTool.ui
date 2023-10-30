@@ -189,6 +189,17 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>FolderButton</tabstop>
+  <tabstop>NightlyButton</tabstop>
+  <tabstop>BetaButton</tabstop>
+  <tabstop>Legacy</tabstop>
+  <tabstop>Legacy_2</tabstop>
+  <tabstop>WifiFixButton</tabstop>
+  <tabstop>UninstallWifiButton</tabstop>
+  <tabstop>NightlyPatch</tabstop>
+  <tabstop>BetaPatch</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

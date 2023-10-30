@@ -177,6 +177,19 @@ class MyMainWindow(QMainWindow):
             self.selected_directory = directory
             print("Directory: ", self.selected_directory)
 
+            try:
+                # Update config files
+                config = ConfigParser()
+                config.read("config.ini")
+                config.set('Paths', 'directory_path', self.selected_directory)
+                with open('config.ini', 'w') as configfile:
+                    config.write(configfile)
+
+            except Exception as e:
+                self.show_error_message(f"An error occurred: {str(e)}")
+            except:
+                self.show_error_message("An unknown error occurred")
+
             # Check if some version of HDR is installed
             if not os.path.exists(os.path.join(self.selected_directory, 'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt')):
                 self.ui.HDRVersion.setText(
