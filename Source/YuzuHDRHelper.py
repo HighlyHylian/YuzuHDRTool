@@ -5,9 +5,9 @@ import requests
 import os
 import datetime
 import shutil
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QProgressBar, QProgressDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QProgressDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QFrame, QHBoxLayout
+from PyQt5.QtCore import Qt, QPoint
 from YuzuToolMenu import Ui_MainWindow  # Import the generated UI module
-import configparser
 from configparser import ConfigParser
 
 
@@ -44,17 +44,91 @@ def extract_zip(zip_file_path, target_directory):
         print(f"An error occurred: {str(e)}")
         return False
 
+class CustomTitleBar(QFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setFixedHeight(60)  # Increased vertical size
+
+        self.layout = QHBoxLayout()  # Use a horizontal layout for the title bar
+        self.layout.setContentsMargins(10, 0, 10, 0)
+
+        self.title_label = QLabel("YuzuHDRHelper")
+        self.title_label.setStyleSheet("font-size: 30px;")
+        self.layout.addWidget(self.title_label)
+
+        # Create a square "Cancel" button on the right
+        self.cancel_button = QPushButton("Close")
+        self.cancel_button.setFixedWidth(60)  # Make it square
+        self.cancel_button.clicked.connect(self.window().close)
+
+        self.layout.addWidget(self.cancel_button)
+        self.setLayout(self.layout)
+
+        # Initialize variables to track mouse events
+        self.mouse_pressed = False
+        self.old_pos = QPoint()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.mouse_pressed = True
+            self.old_pos = event.globalPos()
+
+    def mouseMoveEvent(self, event):
+        if self.mouse_pressed:
+            delta = event.globalPos() - self.old_pos
+            self.window().move(self.window().pos() + delta)
+            self.old_pos = event.globalPos()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.mouse_pressed = False
 
 class MyMainWindow(QMainWindow):
+    
     def __init__(self):
         super().__init__()
 
         # Set up the user interface from the generated UI file
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.draggable = True
 
-        # Create a new progress bar widget
-        self.progress_dialog = None
+
+
+        # Create a custom title bar and set it as the window's menu bar.
+        self.title_bar = CustomTitleBar(self)
+        self.setMenuWidget(self.title_bar)
+
+        # Create a central widget for your content
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout(central_widget)
+
+        # Create a widget for your buttons and add them to a layout
+        button_widget = QWidget()
+        button_layout = QVBoxLayout(button_widget)
+        button_layout.addWidget(self.ui.FolderButton)
+        button_layout.addWidget(self.ui.HDRVersion)
+        button_layout.addWidget(self.ui.line)
+        button_layout.addWidget(self.ui.NightlyButton)
+        button_layout.addWidget(self.ui.BetaButton)
+        button_layout.addWidget(self.ui.Legacy)
+        button_layout.addWidget(self.ui.line_2)
+        button_layout.addWidget(self.ui.Legacy_2)
+        button_layout.addWidget(self.ui.WifiFixButton)
+        button_layout.addWidget(self.ui.UninstallWifiButton)
+        button_layout.addWidget(self.ui.line_3)
+        button_layout.addWidget(self.ui.NightlyPatch)
+        button_layout.addWidget(self.ui.BetaPatch)
+
+        # Set the widget's layout
+        button_widget.setLayout(button_layout)
+
+        # Add the button widget to the central layout
+        layout.addWidget(button_widget)
+
+
 
         # Connect buttons to empty functions (no functionality yet)
         self.ui.NightlyButton.clicked.connect(self.NightlyDownload)
@@ -66,40 +140,47 @@ class MyMainWindow(QMainWindow):
         self.ui.BetaPatch.clicked.connect(self.BetaPatch)
         self.ui.Legacy.clicked.connect(self.legacyDL)
         self.ui.Legacy_2.clicked.connect(self.installLegacy)
-        self.selected_directory = None
+
 
         config = ConfigParser()
-        config['Paths'] = {
-            'directory_path': ''
+        config['cfg'] = {
+            'directory_path': '',
+            'isDark' : True
         }
 
         config.read('config.ini')
 
-        # Retrieve the directory path
-        directory_path = config.get('Paths', 'directory_path')
+        # Retrieve and set the configured values
+        directory_path = config.get('cfg', 'directory_path')
         directory_path = directory_path.replace('\'', '')
-
         self.selected_directory = directory_path
 
-        # Use the directory path in your program
+        self.isDark = config.getboolean('cfg', 'isDark')
+        self.setTheme(self.isDark)
+
+        # Display to terminal the path read from config
         print(f"Directory path read from file: {directory_path}")
 
+        # Initialize the version label to the right value
         if os.path.exists(os.path.join(self.selected_directory, 'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt')):
             file = open(os.path.join(self.selected_directory,
                         'ultimate', 'mods', 'hdr', 'ui', 'hdr_version.txt'))
             self.ui.HDRVersion.setText('Current HDR Version: ' + file.read())
         else:
             print('Directory Not Set')
+            self.origin = None
 
     # Define empty functions for the buttons (add functionality later)
     def empty_function(self):
         self.show_error_message("Coming Soon(tm)")
 
+    # Checks if the path given is a valid SDMC path and that it exists. Returns true if so
     def isValidPath(self):
         if self.selected_directory and self.selected_directory.endswith("/yuzu/sdmc"):
             return True
         return False
 
+    # Display an error message with the given message argument
     def show_error_message(self, message):
         error_box = QMessageBox()
         error_box.setIcon(QMessageBox.Critical)
@@ -107,6 +188,7 @@ class MyMainWindow(QMainWindow):
         error_box.setWindowTitle("Error")
         error_box.exec_()
 
+    # Downloads the legacy_discovery file.
     def legacyDL(self):
         url = "https://cdn.discordapp.com/attachments/410208534861447170/1139219391611949096/legacy_discovery"
         file_name = "legacy_discovery"
@@ -134,6 +216,7 @@ class MyMainWindow(QMainWindow):
         except:
             self.show_error_message("An unknown error occurred")
 
+    # Displays the message argument and continue after
     def display_message_and_continue(self, message):
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Information)
@@ -148,6 +231,7 @@ class MyMainWindow(QMainWindow):
         if result == QMessageBox.Ok:
             return
 
+    # Prompts user for a question and returns their yes or no answer
     def ask_question(self, message):
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Question)
@@ -160,6 +244,7 @@ class MyMainWindow(QMainWindow):
         # Return True if the user clicked Yes, otherwise False
         return result == QMessageBox.Yes
 
+    # Folder prompt function
     def set_folder(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly  # Optional: Make the dialog read-only
@@ -176,6 +261,7 @@ class MyMainWindow(QMainWindow):
             # Set the selected directory to the variable
             self.selected_directory = directory
             print("Directory: ", self.selected_directory)
+            
 
             try:
                 # Update config files
@@ -201,6 +287,7 @@ class MyMainWindow(QMainWindow):
                 self.ui.HDRVersion.setText(
                     'Current HDR Version: ' + file.read())
 
+    # Downloads the specified file from the url, names it the file_name, and saves it to download_dir 
     def download_file(self, url, file_name, download_dir):
         try:
             # Send a GET request to the GitHub API to fetch the latest release information
@@ -257,6 +344,7 @@ class MyMainWindow(QMainWindow):
         except:
             self.show_error_message("An unknown error occurred")
 
+    # Handle cancellation of the download (NOT IMPLEMENTED PROPERLY)
     def handle_cancel(self):
         # Handle the cancellation action here
         # You can add code to stop the download or perform cleanup
@@ -267,6 +355,7 @@ class MyMainWindow(QMainWindow):
             self.progress_dialog.reset()  # Reset the progress dialog
             # Add code to delete temporary files or any cleanup actions
 
+    # Create the progress bar popup
     def show_progress_popup(self, title, label):
         self.progress_dialog = QProgressDialog(title, "", 0, 100, self)
         self.progress_dialog.setWindowModality(2)
@@ -280,6 +369,7 @@ class MyMainWindow(QMainWindow):
 
         self.progress_dialog.setValue(0)
 
+    # Download the latest nightly to parent directory
     def NightlyDownload(self):
 
         # github api call
@@ -290,9 +380,6 @@ class MyMainWindow(QMainWindow):
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
 
-        self.show_error_message(
-            "Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
-
         self.show_progress_popup("Nightly Download", "Downloading...")
 
         self.download_file(nightly_url, file_name, download_dir)
@@ -301,6 +388,7 @@ class MyMainWindow(QMainWindow):
 
         self.display_message_and_continue('Finished downloading nightly')
 
+    # Download the latest beta to parent directory
     def BetaDownload(self):
 
         # gihub api call
@@ -311,9 +399,6 @@ class MyMainWindow(QMainWindow):
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
 
-        self.show_error_message(
-            "Press OK to start downloading.\nWHEN IT SAYS NOT RESPONDING, DO NOT CLOSE\nFILE IS DOWNLOADING PROPERLY")
-
         self.show_progress_popup("Beta Download", "Downloading...")
         self.download_file(beta_url, file_name, download_dir)
 
@@ -321,6 +406,7 @@ class MyMainWindow(QMainWindow):
 
         self.display_message_and_continue('Finished downloading beta')
 
+    # Patches in the nightly
     def NightlyPatch(self):
         # Check if the current path is valid
         if not self.isValidPath():
@@ -372,6 +458,7 @@ class MyMainWindow(QMainWindow):
             except:
                 self.show_error_message("An unknown error occurred")
 
+    # Patches in the beta
     def BetaPatch(self):
         # Check if the current path is valid
         if not self.isValidPath():
@@ -423,6 +510,7 @@ class MyMainWindow(QMainWindow):
             except:
                 self.show_error_message("An unknown error occurred")
 
+    # Installs the online fix (I DON'T KNOW IF THIS EVEN WORKS ANYMORE)
     def InstallOnlineFix(self):
         if not self.isValidPath():
             self.show_error_message(
@@ -448,6 +536,7 @@ class MyMainWindow(QMainWindow):
 
         self.display_message_and_continue('Finished installing online fix')
 
+    # Uninstalls the online fix
     def UninstallOnlineFix(self):
         if not self.isValidPath():
             self.show_error_message(
@@ -479,6 +568,7 @@ class MyMainWindow(QMainWindow):
         self.display_message_and_continue(
             'Finished uninstalling the online fix')
 
+    # Installs legacy discovery to all files matching the criteria
     def installLegacy(self):
         if not os.path.exists(os.path.join(os.getcwd(), 'legacy_discovery')):
             self.show_error_message(
@@ -512,6 +602,7 @@ class MyMainWindow(QMainWindow):
         self.display_message_and_continue(
             "Finished installing \'legacy_discovery\'")
 
+    # Makes a backup of the specified folder with a date and time stamp
     def backup_folder(self, source_path):
         if source_path:
             try:
@@ -538,6 +629,108 @@ class MyMainWindow(QMainWindow):
         else:
             return False
 
+    # Sets the theme based on a bool passed in
+    def setTheme(self, isDark):
+        if isDark:  
+
+            # Dark window style creation and set
+            dark_window_style = """
+QMainWindow {
+    background-color: rgb(20,20,20); 
+    border: 4px green;
+}
+"""
+            self.setStyleSheet(dark_window_style)
+
+            # Dark version style set
+            self.ui.HDRVersion.setStyleSheet("color: white")
+
+            # Dark button style creation and set
+            dark_button_style = """
+QPushButton {
+    background-color: rgb(80, 165, 120);
+    border: 2px solid rgb(80, 165, 120);
+    border-radius: 10px;
+    padding: 5px 10px;
+    color: white
+}
+
+QPushButton:hover {
+    background-color: rgb(100, 185, 140);
+}
+
+QPushButton:pressed {
+    background-color: rgb(20, 145, 100);
+    border: 2px solid rgb(20, 145, 100);
+}
+"""
+
+            self.ui.NightlyButton.setStyleSheet(dark_button_style)
+            self.ui.BetaButton.setStyleSheet(dark_button_style)
+            self.ui.WifiFixButton.setStyleSheet(dark_button_style)
+            self.ui.UninstallWifiButton.setStyleSheet(dark_button_style)
+            self.ui.FolderButton.setStyleSheet(dark_button_style)
+            self.ui.NightlyPatch.setStyleSheet(dark_button_style)
+            self.ui.BetaPatch.setStyleSheet(dark_button_style)
+            self.ui.Legacy.setStyleSheet(dark_button_style)
+            self.ui.Legacy_2.setStyleSheet(dark_button_style)
+
+            # Dark cancel button set
+            self.title_bar.cancel_button.setStyleSheet("background-color: rgb(160, 50, 63); color: white;")
+
+            # Light title bar set
+            self.title_bar.setStyleSheet("background-color: rgb(100, 185, 140); color: White; text-align: center;")  # Mint green color and center text
+
+        else:  
+            # Set main bg colour to white
+            self.setStyleSheet("background-color: rgb(255, 255, 255)")
+
+            # Light window style creation and set
+            light_window_style = """
+QMainWindow {
+    background-color: white; 
+    border: 4px green;
+}
+"""
+            self.setStyleSheet(light_window_style)
+
+            # Light button style creation and set
+            light_button_style = """
+QPushButton {
+    background-color: rgb(170, 255, 210);
+    border: 2px solid rgb(170, 255, 210);
+    border-radius: 10px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background-color: rgb(180, 255, 220);
+}
+
+QPushButton:pressed {
+    background-color: rgb(140, 215, 170);
+    border: 2px solid rgb(140, 215, 170);
+}
+"""
+
+            self.ui.NightlyButton.setStyleSheet(light_button_style)
+            self.ui.BetaButton.setStyleSheet(light_button_style)
+            self.ui.WifiFixButton.setStyleSheet(light_button_style)
+            self.ui.UninstallWifiButton.setStyleSheet(light_button_style)
+            self.ui.FolderButton.setStyleSheet(light_button_style)
+            self.ui.NightlyPatch.setStyleSheet(light_button_style)
+            self.ui.BetaPatch.setStyleSheet(light_button_style)
+            self.ui.Legacy.setStyleSheet(light_button_style)
+            self.ui.Legacy_2.setStyleSheet(light_button_style)
+
+            # Light cancel button set
+            self.title_bar.cancel_button.setStyleSheet("background-color: rgb(255, 194, 228); color: black;")
+
+            # Light title bar set
+            self.title_bar.setStyleSheet("background-color: rgb(170, 255, 210); color: black; text-align: center;")  # Mint green color and center text
+
+    def updateCfg():
+        pass
 
 def main():
     app = QApplication(sys.argv)
