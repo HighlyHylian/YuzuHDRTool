@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['Source\\YuzuHDRHelper.py'],
+    ['YuzuHDRHelper.py'],
     pathex=[],
     binaries=[],
     datas=[],

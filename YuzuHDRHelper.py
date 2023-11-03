@@ -1,4 +1,6 @@
 import sys
+import os.path
+CWD = os.path.abspath(os.path.dirname(sys.executable))
 import zipfile
 import glob
 import requests
@@ -148,7 +150,8 @@ class MyMainWindow(QMainWindow):
             'isDark' : True
         }
 
-        config.read('config.ini')
+        print("Test: ", config.read('config.ini'))
+        
 
         # Retrieve and set the configured values
         directory_path = config.get('cfg', 'directory_path')
@@ -192,7 +195,7 @@ class MyMainWindow(QMainWindow):
     def legacyDL(self):
         url = "https://cdn.discordapp.com/attachments/410208534861447170/1139219391611949096/legacy_discovery"
         file_name = "legacy_discovery"
-        download_dir = os.getcwd()
+        download_dir = CWD
         try:
             # Send a GET request to the URL to fetch the file
             response = requests.get(url)
@@ -267,7 +270,7 @@ class MyMainWindow(QMainWindow):
                 # Update config files
                 config = ConfigParser()
                 config.read("config.ini")
-                config.set('Paths', 'directory_path', self.selected_directory)
+                config.set('cfg', 'directory_path', self.selected_directory)
                 with open('config.ini', 'w') as configfile:
                     config.write(configfile)
 
@@ -414,7 +417,7 @@ class MyMainWindow(QMainWindow):
             return
 
         # Check if nightly is downloaded
-        if not os.path.exists(os.path.join(os.getcwd(), "nightly", "ryujinx-package.zip")):
+        if not os.path.exists(os.path.join(CWD, "nightly", "ryujinx-package.zip")):
             self.show_error_message("Please download the nightly first")
             return
 
@@ -424,19 +427,19 @@ class MyMainWindow(QMainWindow):
             # Patching process
             try:
                 if (self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
-                    if extract_zip(os.path.join(os.getcwd(), "nightly/ryujinx-package.zip"), self.selected_directory):
+                    if extract_zip(os.path.join(CWD, "nightly/ryujinx-package.zip"), self.selected_directory):
                         folders = [
                             os.path.join(
                                 self.selected_directory, "atmosphere"),
                             os.path.join(self.selected_directory, "ultimate"),
-                            os.path.join(os.getcwd(), "normal_exefs")
+                            os.path.join(CWD, "normal_exefs")
                         ]
                         delete_folders(folders)
 
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(
                             self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents",
-                                    "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))
+                                    "01006A800016E000", "exefs"), os.path.join(CWD, "normal_exefs", "exefs"))
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(
                             self.selected_directory, "ultimate"))
 
@@ -466,7 +469,7 @@ class MyMainWindow(QMainWindow):
             return
 
         # Check if beta is downloaded
-        if not os.path.exists(os.path.join(os.getcwd(), "beta", "ryujinx-package.zip")):
+        if not os.path.exists(os.path.join(CWD, "beta", "ryujinx-package.zip")):
             self.show_error_message("Please download the beta first")
             return
 
@@ -476,19 +479,19 @@ class MyMainWindow(QMainWindow):
             # Patching process
             try:
                 if (self.backup_folder(os.path.join(self.selected_directory, "ultimate"))):
-                    if extract_zip(os.path.join(os.getcwd(), "beta/ryujinx-package.zip"), self.selected_directory):
+                    if extract_zip(os.path.join(CWD, "beta/ryujinx-package.zip"), self.selected_directory):
                         folders = [
                             os.path.join(
                                 self.selected_directory, "atmosphere"),
                             os.path.join(self.selected_directory, "ultimate"),
-                            os.path.join(os.getcwd(), "normal_exefs")
+                            os.path.join(CWD, "normal_exefs")
                         ]
                         delete_folders(folders)
 
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents", "01006A800016E000"), os.path.join(
                             self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "atmosphere", "contents",
-                                    "01006A800016E000", "exefs"), os.path.join(os.getcwd(), "normal_exefs", "exefs"))
+                                    "01006A800016E000", "exefs"), os.path.join(CWD, "normal_exefs", "exefs"))
                         copy_folder(os.path.join(self.selected_directory, "sdcard", "ultimate"), os.path.join(
                             self.selected_directory, "ultimate"))
 
@@ -527,7 +530,7 @@ class MyMainWindow(QMainWindow):
                              "contents", "01006A800016E000")
             ]
             delete_folders(folders)
-            copy_folder(os.path.join(os.getcwd(), "fixed_exefs"), os.path.join(
+            copy_folder(os.path.join(CWD, "fixed_exefs"), os.path.join(
                 self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
         except Exception as e:
             self.show_error_message(f"Error:  {str(e)}")
@@ -547,7 +550,7 @@ class MyMainWindow(QMainWindow):
             self.show_error_message("Please install hdr first")
             return  # HERE
 
-        if not os.path.exists(os.path.join(os.getcwd(), "normal_exefs")):
+        if not os.path.exists(os.path.join(CWD, "normal_exefs")):
             self.show_error_message(
                 "Error: Normal exefs not stored. Run the nightly or beta patcher first.")
             return  # HERE
@@ -558,7 +561,7 @@ class MyMainWindow(QMainWindow):
                              "contents", "01006A800016E000")
             ]
             delete_folders(folders)
-            copy_folder(os.path.join(os.getcwd(), "normal_exefs"), os.path.join(
+            copy_folder(os.path.join(CWD, "normal_exefs"), os.path.join(
                 self.selected_directory, "atmosphere", "contents", "01006A800016E000"))
         except Exception as e:
             self.show_error_message(f"Error:  {str(e)}")
@@ -570,7 +573,7 @@ class MyMainWindow(QMainWindow):
 
     # Installs legacy discovery to all files matching the criteria
     def installLegacy(self):
-        if not os.path.exists(os.path.join(os.getcwd(), 'legacy_discovery')):
+        if not os.path.exists(os.path.join(CWD, 'legacy_discovery')):
             self.show_error_message(
                 "Please click the \'Download Legacy Discovery\' button first.")
             return
@@ -581,7 +584,7 @@ class MyMainWindow(QMainWindow):
             return
 
         # Set the source file to legacy discovery's path
-        source_file = os.path.join(os.getcwd(), 'legacy_discovery')
+        source_file = os.path.join(CWD, 'legacy_discovery')
 
         # Get the regex directory path
         target_directory_pattern = os.path.join(
